@@ -1,5 +1,6 @@
 import { Api } from "../../libraries/api.ts";
 import { NotFoundError } from "../../mod.ts";
+import { addTwoNumbers } from "./actions.ts";
 import { relay } from "./relay.ts";
 import { User } from "./user.ts";
 
@@ -30,4 +31,8 @@ export const api = new Api([
   relay.route("DELETE", "/users/:userId").handle(async ({ userId }) => {
     users = users.filter((user) => user.id !== userId);
   }),
+  relay
+    .route("GET", "/add-two")
+    .actions([addTwoNumbers])
+    .handle(async ({ added }) => added),
 ]);

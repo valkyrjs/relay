@@ -19,4 +19,5 @@ export const relay = new Relay({ url: "http://localhost:36573", adapter }, [
     .params({ userId: z.string().check(z.uuid()) })
     .body(UserSchema.omit({ id: true, createdAt: true })),
   route.delete("/users/:userId").params({ userId: z.string().check(z.uuid()) }),
+  route.get("/add-two").search({ a: z.coerce.number(), b: z.coerce.number() }).response(z.number()),
 ]);

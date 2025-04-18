@@ -126,7 +126,10 @@ export class Api<TRoutes extends Route[]> {
         if (result.success === false) {
           return toResponse(new BadRequestError("Invalid action input", z.prettifyError(result.error)));
         }
-        const output = (await action.state.handle?.(result.data)) ?? {};
+        if (action.state.handle === undefined) {
+          return toResponse(new InternalServerError(`Action '${action.state.name}' is missing handler.`));
+        }
+        const output = await action.state.handle(result.data);
         for (const key in output) {
           context[key] = output[key];
         }

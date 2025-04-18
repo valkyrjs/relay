@@ -25,6 +25,13 @@ export class Relay<TRoutes extends Route[]> {
   }
 
   /**
+   * Override relay url configuration.
+   */
+  set url(value: string) {
+    this.config.url = value;
+  }
+
+  /**
    * Retrieve a route for the given method/path combination which can be further extended
    * for serving incoming third party requests.
    *

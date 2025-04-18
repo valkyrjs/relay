@@ -53,7 +53,7 @@ export class Api<TRoutes extends Route[]> {
    *
    * @param request - Fetch request to pass to a route handler.
    */
-  async handle(request: Request) {
+  async handle(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
     const matched = this.#resolve(request.method, request.url);

@@ -1,6 +1,6 @@
 import "./mocks/server.ts";
 
-import { assertEquals, assertObjectMatch } from "@std/assert";
+import { assertEquals, assertObjectMatch, assertRejects } from "@std/assert";
 import { afterAll, beforeAll, describe, it } from "@std/testing/bdd";
 
 import { relay } from "./mocks/relay.ts";
@@ -54,6 +54,6 @@ describe("Relay", () => {
   });
 
   it("should reject .actions with error", async () => {
-    assertEquals(await relay.get("/add-two", { a: -1, b: 1 }), 2);
+    await assertRejects(() => relay.get("/add-two", { a: -1, b: 1 }), "Invalid input numbers added");
   });
 });

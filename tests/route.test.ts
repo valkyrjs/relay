@@ -52,4 +52,8 @@ describe("Relay", () => {
   it("should successfully run .actions", async () => {
     assertEquals(await relay.get("/add-two", { a: 1, b: 1 }), 2);
   });
+
+  it("should reject .actions with error", async () => {
+    assertEquals(await relay.get("/add-two", { a: -1, b: 1 }), 2);
+  });
 });

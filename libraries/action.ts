@@ -1,5 +1,7 @@
 import z, { ZodObject, ZodRawShape } from "zod";
 
+import { RelayError } from "./errors.ts";
+
 export class Action<TActionState extends ActionState = ActionState> {
   constructor(readonly state: TActionState) {}
 
@@ -61,5 +63,5 @@ type ActionState = {
 };
 
 type ActionHandlerFn<TInput = any, TOutput = any> = TInput extends ZodObject
-  ? (input: z.infer<TInput>) => TOutput extends ZodObject ? Promise<z.infer<TOutput>> : Promise<void>
-  : () => TOutput extends ZodObject ? Promise<z.infer<TOutput>> : Promise<void>;
+  ? (input: z.infer<TInput>) => TOutput extends ZodObject ? Promise<z.infer<TOutput> | RelayError> : Promise<void | RelayError>
+  : () => TOutput extends ZodObject ? Promise<z.infer<TOutput> | RelayError> : Promise<void | RelayError>;

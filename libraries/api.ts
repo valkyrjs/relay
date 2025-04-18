@@ -130,6 +130,9 @@ export class Api<TRoutes extends Route[]> {
           return toResponse(new InternalServerError(`Action '${action.state.name}' is missing handler.`));
         }
         const output = await action.state.handle(result.data);
+        if (output instanceof RelayError) {
+          return toResponse(output);
+        }
         for (const key in output) {
           context[key] = output[key];
         }

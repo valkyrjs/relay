@@ -1,6 +1,7 @@
 import z, { ZodObject, ZodRawShape, ZodType } from "zod";
 
 import { Action } from "./action.ts";
+import { RelayError } from "./errors.ts";
 
 export class Route<TRouteState extends RouteState = RouteState> {
   #pattern?: URLPattern;
@@ -48,12 +49,12 @@ export class Route<TRouteState extends RouteState = RouteState> {
    *
    * @param url - HTTP request.url
    */
-  getParsedParams(url: string): TRouteState["params"] extends ZodObject ? z.infer<TRouteState["params"]> : object {
+  getParsedParams(url: string): object {
     const params = this.pattern.exec(url)?.pathname.groups;
     if (params === undefined) {
       return {};
     }
-    return this.state.params?.parse(params) ?? params;
+    return params;
   }
 
   /**
@@ -76,7 +77,7 @@ export class Route<TRouteState extends RouteState = RouteState> {
    * ```
    */
   params<TParams extends ZodRawShape>(params: TParams): Route<Omit<TRouteState, "params"> & { params: ZodObject<TParams> }> {
-    return new Route({ ...this.state, params }) as any;
+    return new Route({ ...this.state, params: z.object(params) as any });
   }
 
   /**
@@ -99,7 +100,7 @@ export class Route<TRouteState extends RouteState = RouteState> {
    * ```
    */
   search<TSearch extends ZodRawShape>(search: TSearch): Route<Omit<TRouteState, "search"> & { search: ZodObject<TSearch> }> {
-    return new Route({ ...this.state, search }) as any;
+    return new Route({ ...this.state, search: z.object(search) as any });
   }
 
   /**
@@ -203,7 +204,13 @@ export class Route<TRouteState extends RouteState = RouteState> {
 /**
  * Route factories allowing for easy generation of relay compliant routes.
  */
-export const route = {
+export const route: {
+  post<TPath extends string>(path: TPath): Route<{ method: "POST"; path: TPath }>;
+  get<TPath extends string>(path: TPath): Route<{ method: "GET"; path: TPath }>;
+  put<TPath extends string>(path: TPath): Route<{ method: "PUT"; path: TPath }>;
+  patch<TPath extends string>(path: TPath): Route<{ method: "PATCH"; path: TPath }>;
+  delete<TPath extends string>(path: TPath): Route<{ method: "DELETE"; path: TPath }>;
+} = {
   /**
    * Create a new "POST" route for the given path.
    *
@@ -311,7 +318,9 @@ type RouteState = {
 
 export type RouteMethod = "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
 
-export type HandleFn<TContext = any, TResponse = any> = (context: TContext) => TResponse extends ZodType ? Promise<z.infer<TResponse>> : Promise<void>;
+export type HandleFn<TContext = any, TResponse = any> = (
+  context: TContext,
+) => TResponse extends ZodType ? Promise<z.infer<TResponse> | Response | RelayError> : Promise<Response | RelayError | void>;
 
 type RouteContext<TRouteState extends RouteState = RouteState> = (TRouteState["params"] extends ZodObject ? z.infer<TRouteState["params"]> : object) &
   (TRouteState["search"] extends ZodObject ? z.infer<TRouteState["search"]> : object) &

@@ -39,7 +39,9 @@ export class Action<TActionState extends ActionState = ActionState> {
  |--------------------------------------------------------------------------------
  */
 
-export const action = {
+export const action: {
+  make(name: string): Action;
+} = {
   make(name: string) {
     return new Action({ name });
   },

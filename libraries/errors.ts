@@ -7,7 +7,11 @@ export abstract class RelayError<D = unknown> extends Error {
     super(message);
   }
 
-  toJSON() {
+  toJSON(): {
+    status: number;
+    message: string;
+    data: any;
+  } {
     return {
       status: this.status,
       message: this.message,

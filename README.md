@@ -39,10 +39,11 @@ After creating our first route we mount it onto our relay instance.
 
 ```ts
 import { Relay } from "@valkyr/relay";
+import { adapter } from "@valkyr/relay/http";
 
 import route from "./path/to/route.ts";
 
-export const relay = new Relay([
+export const relay = new Relay({ url: "http://localhost:3000/api", adapter }, [
   route
 ]);
 ```
@@ -54,19 +55,21 @@ We have now finished defining our initial relay setup which we can now utilize i
 To be able to successfully execute our user create route we need to attach a handler in our `api`. Lets start off by defining our handler.
 
 ```ts
-import { UnprocessableContentError } from "@valkyr/relay";
+import { Api, UnprocessableContentError } from "@valkyr/relay";
 
 import { relay } from "~project/relay/mod.ts";
 
-relay
-  .route("POST", "/users")
-  .handle(async ({ name, email }) => {
-    const user = await db.users.insert({ name, email });
-    if (user === undefined) {
-      return new UnprocessableContentError();
-    }
-    return user.id;
-  });
+export const api = new Api([
+  relay
+    .route("POST", "/users")
+    .handle(async ({ name, email }) => {
+      const user = await db.users.insert({ name, email });
+      if (user === undefined) {
+        return new UnprocessableContentError();
+      }
+      return user.id;
+    })
+]);
 ```
 
 We now have a `POST` handler for the `/users` path.

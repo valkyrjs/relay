@@ -2,7 +2,8 @@
   "name": "@valkyr/relay",
   "version": "0.1.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./http": "./adapters/http.ts"
   },
   "publish": {
     "exclude": [

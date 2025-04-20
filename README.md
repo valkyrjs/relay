@@ -8,80 +8,73 @@ Relay is a full stack protocol for communicating between client and server. It i
 
 ## Quick Start
 
-For this quick start guide we assume the following project setup:
-
-```
-  api/
-  relay/
-  web/
-```
+Following quick start guide gives a three part setup approach for `Relay`, `RelayAPI`, and `RelayClient`.
 
 ### Relay
 
-First we want to set up our relay space, from the structure above lets start by defining our route.
-
-```ts
-import { route } from "@valkyr/relay";
-import z from "zod";
-
-export default route
-  .post("/users")
-  .body(
-    z.object({
-      name: z.string(),
-      email: z.string().check(z.email()),
-    })
-  )
-  .response(z.string());
-```
-
-After creating our first route we mount it onto our relay instance.
+First thing we need is a relay instance, this is where our base route configuration is defined. This space should be environment agnostic meaning we should be able to import our relay instance in both back end front end environments.
 
 ```ts
 import { Relay } from "@valkyr/relay";
-import { adapter } from "@valkyr/relay/http";
 
-import route from "./path/to/route.ts";
-
-export const relay = new Relay({ url: "http://localhost:3000/api", adapter }, [
+export const relay = new Relay([
   route
+    .post("/users")
+    .body(
+      z.object({
+        name: z.string(),
+        email: z.string().check(z.email()),
+      })
+    )
+    .response(z.string()),
 ]);
 ```
 
-We have now finished defining our initial relay setup which we can now utilize in our `api` and `web` spaces.
+As we can see in the above example we are defining a new `POST` route with an expected `body` and `response` contracts defined using zod schemas.
 
 ### API
 
-To be able to successfully execute our user create route we need to attach a handler in our `api`. Lets start off by defining our handler.
+To be able to process relay requests on our server we create a `RelayAPI` instance which consumes our relay routes. We do this by retrieving the route from the relay and attaching a handler to it. When we define new route methods we get a new instance which we apply to the api, this ensures that the changes to the route on the server only affects the relay on the server.
 
 ```ts
-import { Api, UnprocessableContentError } from "@valkyr/relay";
+import { RelayAPI, NotFoundError } from "@valkyr/relay";
 
-import { relay } from "~project/relay/mod.ts";
+import { relay } from "@project/relay";
 
-export const api = new Api([
-  relay
-    .route("POST", "/users")
-    .handle(async ({ name, email }) => {
-      const user = await db.users.insert({ name, email });
-      if (user === undefined) {
-        return new UnprocessableContentError();
-      }
-      return user.id;
-    })
-]);
+export const api = new RelayAPI({
+  routes: [
+    relay
+      .route("POST", "/users")
+      .handle(async ({ name, email }) => {
+        const user = await db.users.insert({ name, email });
+        if (user === undefined) {
+          return new NotFoundError();
+        }
+        return user.id;
+      }),
+  ],
+});
 ```
 
-We now have a `POST` handler for the `/users` path.
+With the above example we now have a `POST` handler for the `/users` route.
 
 ### Web
 
-Now that we have both our relay and api ready to recieve requests we can trigger a user creation request in our web application.
+Now that we have both our relay and api ready to recieve requests we can trigger a user creation request in our web application by creating a new `RelayClient` instance.
 
 ```ts
-import { relay } from "~project/relay/mod.ts"
+import { RelayClient } from "@valkyr/relay";
+import { adapter } from "@valkyr/relay/http";
 
-const userId = await relay.post("/users", {
+import { relay } from "@project/relay";
+
+const client = new RelayClient({
+  url: "http://localhost:8080",
+  adapter,
+  routes: relay.routes
+})
+
+const userId = await client.post("/users", {
   name: "John Doe",
   email: "john.doe@fixture.none"
 });

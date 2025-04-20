@@ -1,5 +1,4 @@
-import { RequestInput } from "../libraries/relay.ts";
-import { RelayAdapter } from "../mod.ts";
+import type { RelayAdapter, RequestInput } from "../libraries/adapter.ts";
 
 export const adapter: RelayAdapter = {
   async fetch({ method, url, search, body }: RequestInput) {

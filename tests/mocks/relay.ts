@@ -1,11 +1,10 @@
 import z from "zod";
 
-import { adapter } from "../../adapters/http.ts";
 import { Relay } from "../../libraries/relay.ts";
 import { route } from "../../libraries/route.ts";
 import { UserSchema } from "./user.ts";
 
-export const relay = new Relay({ url: "http://localhost:36573", adapter }, [
+export const relay = new Relay([
   route
     .post("/users")
     .body(UserSchema.omit({ id: true, createdAt: true }))
@@ -21,3 +20,5 @@ export const relay = new Relay({ url: "http://localhost:36573", adapter }, [
   route.delete("/users/:userId").params({ userId: z.string().check(z.uuid()) }),
   route.get("/add-two").search({ a: z.coerce.number(), b: z.coerce.number() }).response(z.number()),
 ]);
+
+export type RelayRoutes = typeof relay.$inferRoutes;

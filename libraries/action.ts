@@ -1,6 +1,6 @@
 import z, { ZodObject, ZodRawShape } from "zod";
 
-import { RelayError } from "./errors.ts";
+import type { RelayError } from "./errors.ts";
 
 export class Action<TActionState extends ActionState = ActionState> {
   constructor(readonly state: TActionState) {}

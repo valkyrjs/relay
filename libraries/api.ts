@@ -1,11 +1,11 @@
 import z from "zod";
 
 import { BadRequestError, InternalServerError, NotFoundError, RelayError } from "./errors.ts";
-import { Route, RouteMethod } from "./route.ts";
+import type { Route, RouteMethod } from "./route.ts";
 
 const SUPPORTED_MEHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
-export class Api<TRoutes extends Route[]> {
+export class RelayAPI<TRoutes extends Route[]> {
   /**
    * Route maps funneling registered routes to the specific methods supported by
    * the relay instance.
@@ -35,7 +35,7 @@ export class Api<TRoutes extends Route[]> {
    *
    * @param routes - Routes to register with the instance.
    */
-  constructor(routes: TRoutes) {
+  constructor({ routes }: Config<TRoutes>) {
     const methods: (keyof typeof this.routes)[] = [];
     for (const route of routes) {
       this.#validateRoutePath(route);
@@ -263,6 +263,10 @@ function toResponse(result: object | RelayError | Response | void): Response {
  | Types
  |--------------------------------------------------------------------------------
  */
+
+type Config<TRoutes extends Route[]> = {
+  routes: TRoutes;
+};
 
 type Routes = {
   POST: Route[];

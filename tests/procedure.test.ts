@@ -19,8 +19,7 @@ describe("Procedure", () => {
         },
       },
       async (request) => {
-        const { method, params, id } = await request.json();
-        return api.call(method, params, id);
+        return api.call(await api.parse(request));
       },
     );
     client = relay.client({

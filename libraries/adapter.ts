@@ -1,3 +1,5 @@
+import { RelayError } from "./errors.ts";
+
 export type RelayAdapter = {
   send(input: RelayRequestInput): Promise<RelayResponse>;
 };
@@ -9,12 +11,12 @@ export type RelayRequestInput = {
 
 export type RelayResponse =
   | {
+      relay: "1.0";
       result: unknown;
-      id: string;
+      id: string | number;
     }
   | {
-      error: {
-        message: string;
-      };
-      id: string;
+      relay: "1.0";
+      error: RelayError;
+      id: string | number;
     };

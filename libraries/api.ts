@@ -2,6 +2,7 @@ import z from "zod";
 
 import { BadRequestError, InternalServerError, NotFoundError, RelayError } from "./errors.ts";
 import { Procedure } from "./procedure.ts";
+import { RelayRequest, request } from "./request.ts";
 
 export class RelayApi<TProcedures extends Procedure[]> {
   /**
@@ -22,13 +23,22 @@ export class RelayApi<TProcedures extends Procedure[]> {
   }
 
   /**
+   * Takes a request candidate and parses its json body.
+   *
+   * @param candidate - Request candidate to parse.
+   */
+  async parse(candidate: Request): Promise<RelayRequest> {
+    return request.parseAsync(await candidate.json());
+  }
+
+  /**
    * Handle a incoming fetch request.
    *
    * @param method - Method name being executed.
    * @param params - Parameters provided with the method request.
    * @param id     - Request id used for response identification.
    */
-  async call(method: string, params: unknown, id: string): Promise<Response> {
+  async call({ method, params, id }: RelayRequest): Promise<Response> {
     const procedure = this.#index.get(method);
     if (procedure === undefined) {
       return toResponse(new NotFoundError(`Method '' does not exist`), id);
@@ -112,10 +122,11 @@ export class RelayApi<TProcedures extends Procedure[]> {
  * @param result - Result to send back as a Response.
  * @param id     - Request id which can be used to identify the response.
  */
-function toResponse(result: object | RelayError | Response | void, id: string): Response {
+export function toResponse(result: object | RelayError | Response | void, id: string | number): Response {
   if (result === undefined) {
     return new Response(
       JSON.stringify({
+        relay: "1.0",
         result: null,
         id,
       }),
@@ -133,6 +144,7 @@ function toResponse(result: object | RelayError | Response | void, id: string): 
   if (result instanceof RelayError) {
     return new Response(
       JSON.stringify({
+        relay: "1.0",
         error: result,
         id,
       }),
@@ -146,6 +158,7 @@ function toResponse(result: object | RelayError | Response | void, id: string): 
   }
   return new Response(
     JSON.stringify({
+      relay: "1.0",
       result,
       id,
     }),

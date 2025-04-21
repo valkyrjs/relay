@@ -1,17 +1,50 @@
-export abstract class RelayError<D = unknown> extends Error {
+export abstract class RelayError<TData = unknown> extends Error {
   constructor(
     message: string,
     readonly status: number,
-    readonly data?: D,
+    readonly data?: TData,
   ) {
     super(message);
   }
 
-  toJSON(): {
-    status: number;
-    message: string;
-    data: any;
-  } {
+  /**
+   * Converts a server delivered JSON error to its native instance.
+   *
+   * @param value - Error JSON.
+   */
+  static fromJSON(value: RelayErrorJSON): RelayErrorType {
+    switch (value.status) {
+      case 400:
+        return new BadRequestError(value.message, value.data);
+      case 401:
+        return new UnauthorizedError(value.message, value.data);
+      case 403:
+        return new ForbiddenError(value.message, value.data);
+      case 404:
+        return new NotFoundError(value.message, value.data);
+      case 405:
+        return new MethodNotAllowedError(value.message, value.data);
+      case 406:
+        return new NotAcceptableError(value.message, value.data);
+      case 409:
+        return new ConflictError(value.message, value.data);
+      case 410:
+        return new GoneError(value.message, value.data);
+      case 415:
+        return new UnsupportedMediaTypeError(value.message, value.data);
+      case 422:
+        return new UnprocessableContentError(value.message, value.data);
+      case 503:
+        return new ServiceUnavailableError(value.message, value.data);
+      default:
+        return new InternalServerError(value.message, value.data);
+    }
+  }
+
+  /**
+   * Convert error instance to a JSON object.
+   */
+  toJSON(): RelayErrorJSON {
     return {
       status: this.status,
       message: this.message,
@@ -20,7 +53,7 @@ export abstract class RelayError<D = unknown> extends Error {
   }
 }
 
-export class BadRequestError<D = unknown> extends RelayError<D> {
+export class BadRequestError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new BadRequestError.
    *
@@ -30,12 +63,12 @@ export class BadRequestError<D = unknown> extends RelayError<D> {
    *
    * @param data - Optional data to send with the error.
    */
-  constructor(message = "Bad Request", data?: D) {
+  constructor(message = "Bad Request", data?: TData) {
     super(message, 400, data);
   }
 }
 
-export class UnauthorizedError<D = unknown> extends RelayError<D> {
+export class UnauthorizedError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new UnauthorizedError.
    *
@@ -56,12 +89,12 @@ export class UnauthorizedError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Unauthorized".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Unauthorized", data?: D) {
+  constructor(message = "Unauthorized", data?: TData) {
     super(message, 401, data);
   }
 }
 
-export class ForbiddenError<D = unknown> extends RelayError<D> {
+export class ForbiddenError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new ForbiddenError.
    *
@@ -77,12 +110,12 @@ export class ForbiddenError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Forbidden".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Forbidden", data?: D) {
+  constructor(message = "Forbidden", data?: TData) {
     super(message, 403, data);
   }
 }
 
-export class NotFoundError<D = unknown> extends RelayError<D> {
+export class NotFoundError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new NotFoundError.
    *
@@ -99,12 +132,12 @@ export class NotFoundError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Not Found".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Not Found", data?: D) {
+  constructor(message = "Not Found", data?: TData) {
     super(message, 404, data);
   }
 }
 
-export class MethodNotAllowedError<D = unknown> extends RelayError<D> {
+export class MethodNotAllowedError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new MethodNotAllowedError.
    *
@@ -116,12 +149,12 @@ export class MethodNotAllowedError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Method Not Allowed".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Method Not Allowed", data?: D) {
+  constructor(message = "Method Not Allowed", data?: TData) {
     super(message, 405, data);
   }
 }
 
-export class NotAcceptableError<D = unknown> extends RelayError<D> {
+export class NotAcceptableError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new NotAcceptableError.
    *
@@ -133,12 +166,12 @@ export class NotAcceptableError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Not Acceptable".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Not Acceptable", data?: D) {
+  constructor(message = "Not Acceptable", data?: TData) {
     super(message, 406, data);
   }
 }
 
-export class ConflictError<D = unknown> extends RelayError<D> {
+export class ConflictError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new ConflictError.
    *
@@ -154,12 +187,12 @@ export class ConflictError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Conflict".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Conflict", data?: D) {
+  constructor(message = "Conflict", data?: TData) {
     super(message, 409, data);
   }
 }
 
-export class GoneError<D = unknown> extends RelayError<D> {
+export class GoneError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new GoneError.
    *
@@ -177,12 +210,12 @@ export class GoneError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Gone".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Gone", data?: D) {
+  constructor(message = "Gone", data?: TData) {
     super(message, 410, data);
   }
 }
 
-export class UnsupportedMediaTypeError<D = unknown> extends RelayError<D> {
+export class UnsupportedMediaTypeError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new UnsupportedMediaTypeError.
    *
@@ -194,12 +227,12 @@ export class UnsupportedMediaTypeError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Unsupported Media Type".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Unsupported Media Type", data?: D) {
+  constructor(message = "Unsupported Media Type", data?: TData) {
     super(message, 415, data);
   }
 }
 
-export class UnprocessableContentError<D = unknown> extends RelayError<D> {
+export class UnprocessableContentError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new UnprocessableContentError.
    *
@@ -216,12 +249,12 @@ export class UnprocessableContentError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Unprocessable Content".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Unprocessable Content", data?: D) {
+  constructor(message = "Unprocessable Content", data?: TData) {
     super(message, 422, data);
   }
 }
 
-export class InternalServerError<D = unknown> extends RelayError<D> {
+export class InternalServerError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new InternalServerError.
    *
@@ -239,12 +272,12 @@ export class InternalServerError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Internal Server Error".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Internal Server Error", data?: D) {
+  constructor(message = "Internal Server Error", data?: TData) {
     super(message, 500, data);
   }
 }
 
-export class ServiceUnavailableError<D = unknown> extends RelayError<D> {
+export class ServiceUnavailableError<TData = unknown> extends RelayError<TData> {
   /**
    * Instantiate a new ServiceUnavailableError.
    *
@@ -259,7 +292,27 @@ export class ServiceUnavailableError<D = unknown> extends RelayError<D> {
    * @param message - Optional message to send with the error. Default: "Service Unavailable".
    * @param data    - Optional data to send with the error.
    */
-  constructor(message = "Service Unavailable", data?: D) {
+  constructor(message = "Service Unavailable", data?: TData) {
     super(message, 503, data);
   }
 }
+
+export type RelayErrorJSON = {
+  status: number;
+  message: string;
+  data: any;
+};
+
+export type RelayErrorType =
+  | BadRequestError
+  | UnauthorizedError
+  | ForbiddenError
+  | NotFoundError
+  | MethodNotAllowedError
+  | NotAcceptableError
+  | ConflictError
+  | GoneError
+  | UnsupportedMediaTypeError
+  | UnprocessableContentError
+  | ServiceUnavailableError
+  | InternalServerError;

@@ -104,6 +104,23 @@ export class NotFoundError<D = unknown> extends RelayError<D> {
   }
 }
 
+export class MethodNotAllowedError<D = unknown> extends RelayError<D> {
+  /**
+   * Instantiate a new MethodNotAllowedError.
+   *
+   * The **HTTP 405 Method Not Allowed** response code indicates that the
+   * request method is known by the server but is not supported by the target resource.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405
+   *
+   * @param message - Optional message to send with the error. Default: "Method Not Allowed".
+   * @param data    - Optional data to send with the error.
+   */
+  constructor(message = "Method Not Allowed", data?: D) {
+    super(message, 405, data);
+  }
+}
+
 export class NotAcceptableError<D = unknown> extends RelayError<D> {
   /**
    * Instantiate a new NotAcceptableError.
@@ -162,6 +179,23 @@ export class GoneError<D = unknown> extends RelayError<D> {
    */
   constructor(message = "Gone", data?: D) {
     super(message, 410, data);
+  }
+}
+
+export class UnsupportedMediaTypeError<D = unknown> extends RelayError<D> {
+  /**
+   * Instantiate a new UnsupportedMediaTypeError.
+   *
+   * The **HTTP 415 Unsupported Media Type** response code indicates that the
+   * server refuses to accept the request because the payload format is in an unsupported format.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/415
+   *
+   * @param message - Optional message to send with the error. Default: "Unsupported Media Type".
+   * @param data    - Optional data to send with the error.
+   */
+  constructor(message = "Unsupported Media Type", data?: D) {
+    super(message, 415, data);
   }
 }
 

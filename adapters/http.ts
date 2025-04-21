@@ -1,15 +1,15 @@
-import type { RelayAdapter, RequestInput } from "../libraries/adapter.ts";
+import type { RelayAdapter, RelayRequestInput, RelayResponse } from "../libraries/adapter.ts";
 
-export const adapter: RelayAdapter = {
-  async fetch({ method, url, search, body }: RequestInput) {
-    const res = await fetch(`${url}${search}`, { method, headers: { "content-type": "application/json" }, body });
-    const data = await res.text();
-    if (res.status >= 400) {
-      throw new Error(data);
+export class HttpAdapter implements RelayAdapter {
+  #id: number = 0;
+
+  constructor(readonly url: string) {}
+
+  async send({ method, params }: RelayRequestInput): Promise<RelayResponse> {
+    const res = await fetch(this.url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ method, params, id: this.#id++ }) });
+    if (res.headers.get("content-type")?.includes("application/json") === false) {
+      throw new Error("Unexpected return type");
     }
-    if (res.headers.get("content-type")?.includes("json")) {
-      return JSON.parse(data);
-    }
-    return data;
-  },
-};
+    return res.json();
+  }
+}

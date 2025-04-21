@@ -1,134 +1,44 @@
 import z, { ZodType } from "zod";
 
-import type { RelayAdapter, RequestInput } from "./adapter.ts";
-import type { Route, RouteMethod } from "./route.ts";
+import type { RelayAdapter } from "./adapter.ts";
+import { Procedure, type Procedures } from "./procedure.ts";
 
-export class RelayClient<TRoutes extends Route[]> {
-  /**
-   * Route index in the '${method} ${path}' format allowing for quick access to
-   * a specific route.
-   */
-  readonly #index = new Map<string, Route>();
+/**
+ * Make a new relay client instance.
+ *
+ * @param config     - Client configuration.
+ * @param procedures - Map of procedures to make available to the client.
+ */
+export function makeRelayClient<TProcedures extends Procedures>(config: RelayClientConfig, procedures: TProcedures): RelayClient<TProcedures> {
+  return mapProcedures(procedures, config.adapter);
+}
 
-  /**
-   * Instantiate a new Relay instance.
-   *
-   * @param config - Relay configuration to apply to the instance.
-   * @param routes - Routes to register with the instance.
-   */
-  constructor(readonly config: RelayConfig<TRoutes>) {
-    for (const route of config.routes) {
-      this.#index.set(`${route.method} ${route.path}`, route);
+/*
+ |--------------------------------------------------------------------------------
+ | Helpers
+ |--------------------------------------------------------------------------------
+ */
+
+function mapProcedures<TProcedures extends Procedures>(procedures: TProcedures, adapter: RelayAdapter): RelayClient<TProcedures> {
+  const client: any = {};
+  for (const key in procedures) {
+    const entry = procedures[key];
+    if (entry instanceof Procedure) {
+      client[key] = async (params: unknown) => {
+        const response = await adapter.send({ method: entry.method, params });
+        if ("error" in response) {
+          throw new Error(response.error.message);
+        }
+        if ("result" in response && entry.state.result !== undefined) {
+          return entry.state.result.parseAsync(response.result);
+        }
+        return response.result;
+      };
+    } else {
+      client[key] = mapProcedures(entry, adapter);
     }
   }
-
-  /**
-   * Send a "POST" request through the relay `fetch` adapter.
-   *
-   * @param path - Path to send request to.
-   * @param args - List of request arguments.
-   */
-  async post<
-    TPath extends Extract<TRoutes[number], { state: { method: "POST" } }>["state"]["path"],
-    TRoute extends Extract<TRoutes[number], { state: { method: "POST"; path: TPath } }>,
-  >(path: TPath, ...args: TRoute["args"]): Promise<RelayResponse<TRoute>> {
-    return this.#send("POST", path, args) as RelayResponse<TRoute>;
-  }
-
-  /**
-   * Send a "GET" request through the relay `fetch` adapter.
-   *
-   * @param path - Path to send request to.
-   * @param args - List of request arguments.
-   */
-  async get<
-    TPath extends Extract<TRoutes[number], { state: { method: "GET" } }>["state"]["path"],
-    TRoute extends Extract<TRoutes[number], { state: { method: "GET"; path: TPath } }>,
-  >(path: TPath, ...args: TRoute["args"]): Promise<RelayResponse<TRoute>> {
-    return this.#send("GET", path, args) as RelayResponse<TRoute>;
-  }
-
-  /**
-   * Send a "PUT" request through the relay `fetch` adapter.
-   *
-   * @param path - Path to send request to.
-   * @param args - List of request arguments.
-   */
-  async put<
-    TPath extends Extract<TRoutes[number], { state: { method: "PUT" } }>["state"]["path"],
-    TRoute extends Extract<TRoutes[number], { state: { method: "PUT"; path: TPath } }>,
-  >(path: TPath, ...args: TRoute["args"]): Promise<RelayResponse<TRoute>> {
-    return this.#send("PUT", path, args) as RelayResponse<TRoute>;
-  }
-
-  /**
-   * Send a "PATCH" request through the relay `fetch` adapter.
-   *
-   * @param path - Path to send request to.
-   * @param args - List of request arguments.
-   */
-  async patch<
-    TPath extends Extract<TRoutes[number], { state: { method: "PATCH" } }>["state"]["path"],
-    TRoute extends Extract<TRoutes[number], { state: { method: "PATCH"; path: TPath } }>,
-  >(path: TPath, ...args: TRoute["args"]): Promise<RelayResponse<TRoute>> {
-    return this.#send("PATCH", path, args) as RelayResponse<TRoute>;
-  }
-
-  /**
-   * Send a "DELETE" request through the relay `fetch` adapter.
-   *
-   * @param path - Path to send request to.
-   * @param args - List of request arguments.
-   */
-  async delete<
-    TPath extends Extract<TRoutes[number], { state: { method: "DELETE" } }>["state"]["path"],
-    TRoute extends Extract<TRoutes[number], { state: { method: "DELETE"; path: TPath } }>,
-  >(path: TPath, ...args: TRoute["args"]): Promise<RelayResponse<TRoute>> {
-    return this.#send("DELETE", path, args) as RelayResponse<TRoute>;
-  }
-
-  async #send(method: RouteMethod, url: string, args: any[]) {
-    const route = this.#index.get(`${method} ${url}`);
-    if (route === undefined) {
-      throw new Error(`RelayClient > Failed to send request for '${method} ${url}' route, not found.`);
-    }
-
-    // ### Input
-
-    const input: RequestInput = { method, url: `${this.config.url}${url}`, search: "" };
-
-    let index = 0; // argument incrementor
-
-    if (route.state.params !== undefined) {
-      const params = args[index++] as { [key: string]: string };
-      for (const key in params) {
-        input.url = input.url.replace(`:${key}`, params[key]);
-      }
-    }
-
-    if (route.state.search !== undefined) {
-      const search = args[index++] as { [key: string]: string };
-      const pieces: string[] = [];
-      for (const key in search) {
-        pieces.push(`${key}=${search[key]}`);
-      }
-      if (pieces.length > 0) {
-        input.search = `?${pieces.join("&")}`;
-      }
-    }
-
-    if (route.state.body !== undefined) {
-      input.body = JSON.stringify(args[index++]);
-    }
-
-    // ### Fetch
-
-    const data = await this.config.adapter.fetch(input);
-    if (route.state.output !== undefined) {
-      return route.state.output.parse(data);
-    }
-    return data;
-  }
+  return client;
 }
 
 /*
@@ -137,10 +47,16 @@ export class RelayClient<TRoutes extends Route[]> {
  |--------------------------------------------------------------------------------
  */
 
-type RelayResponse<TRoute extends Route> = TRoute["state"]["output"] extends ZodType ? z.infer<TRoute["state"]["output"]> : void;
+export type RelayClient<TProcedures extends Procedures> = {
+  [TKey in keyof TProcedures]: TProcedures[TKey] extends Procedure<infer TState>
+    ? TState["params"] extends ZodType
+      ? (params: z.infer<TState["params"]>) => Promise<TState["result"] extends ZodType ? z.infer<TState["result"]> : void>
+      : () => Promise<TState["result"] extends ZodType ? z.infer<TState["result"]> : void>
+    : TProcedures[TKey] extends Procedures
+      ? RelayClient<TProcedures[TKey]>
+      : never;
+};
 
-type RelayConfig<TRoutes extends Route[]> = {
-  url: string;
+export type RelayClientConfig = {
   adapter: RelayAdapter;
-  routes: TRoutes;
 };

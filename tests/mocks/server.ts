@@ -1,40 +1,42 @@
-import { RelayAPI } from "../../libraries/api.ts";
+import { RelayApi } from "../../libraries/api.ts";
 import { NotFoundError } from "../../mod.ts";
-import { addTwoNumbers } from "./actions.ts";
+import { addNumbers } from "./actions.ts";
 import { relay } from "./relay.ts";
 import { User } from "./user.ts";
 
 export let users: User[] = [];
 
-export const api = new RelayAPI({
-  routes: [
-    relay.route("POST", "/users").handle(async ({ name, email }) => {
+export const api = new RelayApi({
+  procedures: [
+    relay.procedure("user:create").handle(async ({ name, email }) => {
       const id = crypto.randomUUID();
       users.push({ id, name, email, createdAt: new Date() });
       return id;
     }),
-    relay.route("GET", "/users/:userId").handle(async ({ userId }) => {
+    relay.procedure("user:get").handle(async (userId) => {
       const user = users.find((user) => user.id === userId);
       if (user === undefined) {
         return new NotFoundError();
       }
       return user;
     }),
-    relay.route("PUT", "/users/:userId").handle(async ({ userId, name, email }) => {
+    relay.procedure("user:update").handle(async ([userId, { name, email }]) => {
       for (const user of users) {
         if (user.id === userId) {
-          user.name = name;
-          user.email = email;
+          user.name = name ?? user.name;
+          user.email = email ?? user.email;
           break;
         }
       }
     }),
-    relay.route("DELETE", "/users/:userId").handle(async ({ userId }) => {
+    relay.procedure("user:delete").handle(async (userId) => {
       users = users.filter((user) => user.id !== userId);
     }),
     relay
-      .route("GET", "/add-two")
-      .actions([addTwoNumbers])
-      .handle(async ({ added }) => added),
+      .procedure("number:add")
+      .actions([[addNumbers, (params) => params]])
+      .handle(async (_, { sum }) => {
+        return sum;
+      }),
   ],
 });

@@ -1,12 +1,20 @@
-import type { RouteMethod } from "./route.ts";
-
 export type RelayAdapter = {
-  fetch(input: RequestInput): Promise<unknown>;
+  send(input: RelayRequestInput): Promise<RelayResponse>;
 };
 
-export type RequestInput = {
-  method: RouteMethod;
-  url: string;
-  search: string;
-  body?: string;
+export type RelayRequestInput = {
+  method: string;
+  params: any;
 };
+
+export type RelayResponse =
+  | {
+      result: unknown;
+      id: string;
+    }
+  | {
+      error: {
+        message: string;
+      };
+      id: string;
+    };

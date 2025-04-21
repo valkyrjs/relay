@@ -1,29 +1,31 @@
-import "./mocks/server.ts";
-
 import { assertEquals, assertObjectMatch, assertRejects } from "@std/assert";
 import { afterAll, beforeAll, describe, it } from "@std/testing/bdd";
 
-import { adapter } from "../adapters/http.ts";
-import { RelayClient } from "../libraries/client.ts";
-import { relay, RelayRoutes } from "./mocks/relay.ts";
+import { HttpAdapter } from "../adapters/http.ts";
+import { relay } from "./mocks/relay.ts";
 import { api, users } from "./mocks/server.ts";
 
-describe("Relay", () => {
+describe("Procedure", () => {
   let server: Deno.HttpServer<Deno.NetAddr>;
-  let client: RelayClient<RelayRoutes>;
+  let client: typeof relay.$inferClient;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     server = Deno.serve(
       {
-        port: 36573,
+        port: 8080,
         hostname: "localhost",
         onListen({ port, hostname }) {
           console.log(`Listening at http://${hostname}:${port}`);
         },
       },
-      async (request) => api.handle(request),
+      async (request) => {
+        const { method, params, id } = await request.json();
+        return api.call(method, params, id);
+      },
     );
-    client = new RelayClient({ url: "http://localhost:36573", adapter, routes: relay.routes });
+    client = relay.client({
+      adapter: new HttpAdapter("http://localhost:8080"),
+    });
   });
 
   afterAll(async () => {
@@ -31,16 +33,16 @@ describe("Relay", () => {
   });
 
   it("should successfully relay users", async () => {
-    const userId = await client.post("/users", { name: "John Doe", email: "john.doe@fixture.none" });
+    const userId = await client.user.create({ name: "John Doe", email: "john.doe@fixture.none" });
 
     assertEquals(typeof userId, "string");
     assertEquals(users.length, 1);
 
-    const user = await client.get("/users/:userId", { userId });
+    const user = await client.user.get(userId);
 
     assertEquals(user.createdAt instanceof Date, true);
 
-    await client.put("/users/:userId", { userId }, { name: "Jane Doe", email: "jane.doe@fixture.none" });
+    await client.user.update([userId, { name: "Jane Doe", email: "jane.doe@fixture.none" }]);
 
     assertEquals(users.length, 1);
     assertObjectMatch(users[0], {
@@ -48,16 +50,16 @@ describe("Relay", () => {
       email: "jane.doe@fixture.none",
     });
 
-    await client.delete("/users/:userId", { userId });
+    await client.user.delete(userId);
 
     assertEquals(users.length, 0);
   });
 
   it("should successfully run .actions", async () => {
-    assertEquals(await client.get("/add-two", { a: 1, b: 1 }), 2);
+    assertEquals(await client.numbers.add([1, 1]), 2);
   });
 
   it("should reject .actions with error", async () => {
-    await assertRejects(() => client.get("/add-two", { a: -1, b: 1 }), "Invalid input numbers added");
+    await assertRejects(() => client.numbers.add([-1, 1]), "Invalid input numbers added");
   });
 });

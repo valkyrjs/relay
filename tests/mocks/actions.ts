@@ -3,15 +3,13 @@ import z from "zod";
 import { action } from "../../libraries/action.ts";
 import { BadRequestError } from "../../mod.ts";
 
-export const addTwoNumbers = action
-  .make("addTwoNumbers")
-  .input({ a: z.number(), b: z.number() })
-  .output({ added: z.number() })
-  .handle(async ({ a, b }) => {
+export const addNumbers = action
+  .make("number:add")
+  .input(z.tuple([z.number(), z.number()]))
+  .output({ sum: z.number() })
+  .handle(async ([a, b]) => {
     if (a < 0 || b < 0) {
-      return new BadRequestError("Invalid input numbers added");
+      return new BadRequestError("Invalid numbers provided");
     }
-    return {
-      added: a + b,
-    };
+    return { sum: a + b };
   });

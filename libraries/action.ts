@@ -1,4 +1,4 @@
-import z, { ZodObject, ZodRawShape } from "zod";
+import z, { ZodObject, ZodRawShape, ZodType } from "zod";
 
 import type { RelayError } from "./errors.ts";
 
@@ -10,8 +10,8 @@ export class Action<TActionState extends ActionState = ActionState> {
    *
    * @param input - Schema defining the input requirements of the action.
    */
-  input<TInput extends ZodRawShape>(input: TInput): Action<Omit<TActionState, "input"> & { input: ZodObject<TInput> }> {
-    return new Action({ ...this.state, input: z.object(input) as any });
+  input<TInput extends ZodType>(input: TInput): Action<Omit<TActionState, "input"> & { input: TInput }> {
+    return new Action({ ...this.state, input });
   }
 
   /**
@@ -57,11 +57,15 @@ export const action: {
 
 type ActionState = {
   name: string;
-  input?: ZodObject;
+  input?: ZodType;
   output?: ZodObject;
   handle?: ActionHandlerFn;
 };
 
-type ActionHandlerFn<TInput = any, TOutput = any> = TInput extends ZodObject
+export type ActionPrepareFn<TAction extends Action, TParams extends ZodType> = (
+  params: z.infer<TParams>,
+) => TAction["state"]["input"] extends ZodType ? z.infer<TAction["state"]["input"]> : void;
+
+type ActionHandlerFn<TInput = any, TOutput = any> = TInput extends ZodType
   ? (input: z.infer<TInput>) => TOutput extends ZodObject ? Promise<z.infer<TOutput> | RelayError> : Promise<void | RelayError>
   : () => TOutput extends ZodObject ? Promise<z.infer<TOutput> | RelayError> : Promise<void | RelayError>;

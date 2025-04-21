@@ -8,19 +8,19 @@ export let users: User[] = [];
 
 export const api = new RelayApi({
   procedures: [
-    relay.procedure("user:create").handle(async ({ name, email }) => {
+    relay.method("user:create").handle(async ({ name, email }) => {
       const id = crypto.randomUUID();
       users.push({ id, name, email, createdAt: new Date() });
       return id;
     }),
-    relay.procedure("user:get").handle(async (userId) => {
+    relay.method("user:get").handle(async (userId) => {
       const user = users.find((user) => user.id === userId);
       if (user === undefined) {
         return new NotFoundError();
       }
       return user;
     }),
-    relay.procedure("user:update").handle(async ([userId, { name, email }]) => {
+    relay.method("user:update").handle(async ([userId, { name, email }]) => {
       for (const user of users) {
         if (user.id === userId) {
           user.name = name ?? user.name;
@@ -29,11 +29,11 @@ export const api = new RelayApi({
         }
       }
     }),
-    relay.procedure("user:delete").handle(async (userId) => {
+    relay.method("user:delete").handle(async (userId) => {
       users = users.filter((user) => user.id !== userId);
     }),
     relay
-      .procedure("number:add")
+      .method("number:add")
       .actions([[addNumbers, (params) => params]])
       .handle(async (_, { sum }) => {
         return sum;

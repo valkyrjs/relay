@@ -23,9 +23,11 @@ export class Procedure<TState extends State = State> {
    * ```ts
    * relay
    *   .method("user:create")
-   *   .params({
-   *     bar: z.number()
-   *   })
+   *   .params(
+   *     z.object({
+   *       bar: z.number()
+   *     })
+   *   )
    *   .handle(async ({ bar }) => {
    *     console.log(typeof bar); // => number
    *   });
@@ -46,7 +48,7 @@ export class Procedure<TState extends State = State> {
    * ```ts
    * const hasFooBar = action
    *   .make("hasFooBar")
-   *   .response(z.object({ foobar: z.number() }))
+   *   .output(z.object({ foobar: z.number() }))
    *   .handle(async () => {
    *     return {
    *       foobar: 1,

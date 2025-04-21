@@ -17,21 +17,21 @@ export class Relay<TProcedures extends Procedures, TProcedureIndex = ProcedureIn
   }
 
   /**
-   * Retrieve a registered procedure registered with the relay instance.
-   *
-   * @param method - Method name assigned to the procedure.
-   */
-  procedure<TMethod extends keyof TProcedureIndex>(method: TMethod): TProcedureIndex[TMethod] {
-    return this.#index.get(method) as TProcedureIndex[TMethod];
-  }
-
-  /**
    * Create a new relay client instance from the instance procedures.
    *
    * @param config - Client configuration.
    */
   client(config: RelayClientConfig): this["$inferClient"] {
     return makeRelayClient(config, this.procedures) as any;
+  }
+
+  /**
+   * Retrieve a registered procedure registered with the relay instance.
+   *
+   * @param method - Method name assigned to the procedure.
+   */
+  method<TMethod extends keyof TProcedureIndex>(method: TMethod): TProcedureIndex[TMethod] {
+    return this.#index.get(method) as TProcedureIndex[TMethod];
   }
 }
 

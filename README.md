@@ -48,11 +48,11 @@ As we can see in the above example we are defining a new `method` procedure with
 To be able to process relay requests on our server we create a `RelayApi` instance which consumes our relay routes. We do this by retrieving the procedure from the relay and attaching a handler to it. When we define new procedure methods we get a new instance which we apply to the api, this ensures that the changes to the procedure on the server only affects the relay on the server.
 
 ```ts
-import { RelayApi, NotFoundError } from "@valkyr/relay";
+import { NotFoundError } from "@valkyr/relay";
 
 import { relay } from "@project/relay";
 
-export const api = new RelayApi([
+export const api = relay.api([
   relay
     .method("user:create")
     .handle(async ({ name, email }) => {

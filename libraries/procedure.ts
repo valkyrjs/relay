@@ -3,7 +3,9 @@ import z, { ZodObject, ZodType } from "zod";
 import { Action } from "./action.ts";
 import { RelayError } from "./errors.ts";
 
-export class Procedure<TState extends State = State> {
+export class Procedure<const TState extends State = State> {
+  readonly type = "rpc" as const;
+
   declare readonly args: Args<TState>;
 
   constructor(readonly state: TState) {}
@@ -110,11 +112,11 @@ export class Procedure<TState extends State = State> {
  |--------------------------------------------------------------------------------
  */
 
-export const procedure: {
-  method<const TMethod extends string>(method: TMethod): Procedure<{ method: TMethod }>;
+export const rpc: {
+  method<const TMethod extends string>(method: TMethod): Procedure<{ type: "rpc"; method: TMethod }>;
 } = {
-  method<const TMethod extends string>(method: TMethod): Procedure<{ method: TMethod }> {
-    return new Procedure({ method });
+  method<const TMethod extends string>(method: TMethod): Procedure<{ type: "rpc"; method: TMethod }> {
+    return new Procedure({ type: "rpc", method });
   },
 };
 
@@ -123,10 +125,6 @@ export const procedure: {
  | Types
  |--------------------------------------------------------------------------------
  */
-
-export type Procedures = {
-  [key: string]: Procedures | Procedure;
-};
 
 type State = {
   method: string;

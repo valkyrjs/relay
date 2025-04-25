@@ -19,7 +19,15 @@ describe("Procedure", () => {
         },
       },
       async (request) => {
-        return api.call(await api.parse(request));
+        switch (request.headers.get("x-relay-type")) {
+          case "rest": {
+            return api.rest(request);
+          }
+          case "rpc": {
+            return api.rpc(await api.parse(request));
+          }
+        }
+        return new Response(null, { status: 404 });
       },
     );
     client = relay.client({
@@ -31,34 +39,69 @@ describe("Procedure", () => {
     await server.shutdown();
   });
 
-  it("should successfully relay users", async () => {
-    const userId = await client.user.create({ name: "John Doe", email: "john.doe@fixture.none" });
+  describe("RPC", () => {
+    it("should successfully relay users", async () => {
+      const userId = await client.rpc.user.create({ name: "John Doe", email: "john.doe@fixture.none" });
 
-    assertEquals(typeof userId, "string");
-    assertEquals(users.length, 1);
+      assertEquals(typeof userId, "string");
+      assertEquals(users.length, 1);
 
-    const user = await client.user.get(userId);
+      const user = await client.rpc.user.get(userId);
 
-    assertEquals(user.createdAt instanceof Date, true);
+      assertEquals(user.createdAt instanceof Date, true);
 
-    await client.user.update([userId, { name: "Jane Doe", email: "jane.doe@fixture.none" }]);
+      await client.rpc.user.update([userId, { name: "Jane Doe", email: "jane.doe@fixture.none" }]);
 
-    assertEquals(users.length, 1);
-    assertObjectMatch(users[0], {
-      name: "Jane Doe",
-      email: "jane.doe@fixture.none",
+      assertEquals(users.length, 1);
+      assertObjectMatch(users[0], {
+        name: "Jane Doe",
+        email: "jane.doe@fixture.none",
+      });
+
+      await client.rpc.user.delete(userId);
+
+      assertEquals(users.length, 0);
     });
 
-    await client.user.delete(userId);
+    it("should successfully run .actions", async () => {
+      assertEquals(await client.rpc.numbers.add([1, 1]), 2);
+    });
 
-    assertEquals(users.length, 0);
+    it("should reject .actions with error", async () => {
+      await assertRejects(() => client.rpc.numbers.add([-1, 1]), "Invalid input numbers added");
+    });
   });
 
-  it("should successfully run .actions", async () => {
-    assertEquals(await client.numbers.add([1, 1]), 2);
-  });
+  describe("REST", () => {
+    it("should successfully relay users", async () => {
+      const userId = await client.rest.user.create({ name: "John Doe", email: "john.doe@fixture.none" });
 
-  it("should reject .actions with error", async () => {
-    await assertRejects(() => client.numbers.add([-1, 1]), "Invalid input numbers added");
+      assertEquals(typeof userId, "string");
+      assertEquals(users.length, 1);
+
+      const user = await client.rest.user.get({ userId });
+
+      assertEquals(user.createdAt instanceof Date, true);
+
+      await client.rest.user.update({ userId }, { name: "Jane Doe", email: "jane.doe@fixture.none" });
+
+      assertEquals(users.length, 1);
+      assertObjectMatch(users[0], {
+        name: "Jane Doe",
+        email: "jane.doe@fixture.none",
+      });
+
+      await client.rest.user.delete({ userId });
+
+      assertEquals(users.length, 0);
+    });
+
+    it("should successfully run .actions", async () => {
+      assertEquals(await client.rest.numbers.add([1, 1]), 2);
+    });
+
+    it("should reject .actions with error", async () => {
+      await assertRejects(() => client.rest.numbers.add([-1, 1]), "Invalid input numbers added");
+    });
   });
 });

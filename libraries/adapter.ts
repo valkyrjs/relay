@@ -1,15 +1,25 @@
 import { RelayError } from "./errors.ts";
+import type { RouteMethod } from "./route.ts";
 
 export type RelayAdapter = {
-  send(input: RelayRequestInput): Promise<RelayResponse>;
+  readonly url: string;
+  fetch(input: RelayRESTInput): Promise<unknown>;
+  send(input: RelayProcedureInput): Promise<RelayProcedureResponse>;
 };
 
-export type RelayRequestInput = {
+export type RelayRESTInput = {
+  method: RouteMethod;
+  url: string;
+  query?: string;
+  body?: string;
+};
+
+export type RelayProcedureInput = {
   method: string;
   params: any;
 };
 
-export type RelayResponse =
+export type RelayProcedureResponse =
   | {
       relay: "1.0";
       result: unknown;

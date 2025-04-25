@@ -15,19 +15,30 @@ Following quick start guide gives a three part setup approach for `Relay`, `Rela
 First thing we need is a relay instance, this is where our base procedure configuration is defined. This space should be environment agnostic meaning we should be able to import our relay instance in both back end front end environments.
 
 ```ts
-import { Relay, procedure } from "@valkyr/relay";
+import { Relay, rpc, route } from "@valkyr/relay";
 
-export const relay = new Relay([
-  procedure
-    .method("user:create")
-    .params(
-      z.object({
-        name: z.string(),
-        email: z.string().check(z.email()),
-      })
-    )
-    .result(z.string()),
-]);
+export const relay = new Relay({
+  user: {
+    create: rpc
+      .method("user:create")
+      .params(
+        z.object({
+          name: z.string(),
+          email: z.string().check(z.email()),
+        }),
+      )
+      .result(z.string()),
+    update: route
+      .put("/users/:userId")
+      .params({ userId: z.uuid() })
+      .body(
+        z.object({ 
+          name: z.string().optional(), 
+          email: z.string().optional() 
+        }),
+      ),
+  }
+});
 ```
 
 As we can see in the above example we are defining a new `method` procedure with an expected `params` and `result` contracts defined using zod schemas.
@@ -41,22 +52,25 @@ import { RelayApi, NotFoundError } from "@valkyr/relay";
 
 import { relay } from "@project/relay";
 
-export const api = new RelayApi({
-  routes: [
-    relay
-      .method("user:create")
-      .handle(async ({ name, email }) => {
-        const user = await db.users.insert({ name, email });
-        if (user === undefined) {
-          return new NotFoundError();
-        }
-        return user.id;
-      }),
-  ],
-});
+export const api = new RelayApi([
+  relay
+    .method("user:create")
+    .handle(async ({ name, email }) => {
+      const user = await db.users.insert({ name, email });
+      if (user === undefined) {
+        return new NotFoundError();
+      }
+      return user.id;
+    }),
+  relay
+    .put("/users/:userId")
+    .handle(async ({ userId }, { name, email }) => {
+      await db.users.update({ name, email }).where({ id: userId });
+    }),
+]);
 ```
 
-With the above example we now have a `method` handler for the `user:create` method.
+With the above example we now have a `method` handler for the `user:create` method, and a `put` handler for the `/users/:userId` route path.
 
 ### Web
 
@@ -69,12 +83,12 @@ import { relay } from "@project/relay";
 
 const client = relay.client({
   adapter: new HttpAdapter("http://localhost:8080")
-})
+});
 
 const userId = await client.user.create({
   name: "John Doe",
   email: "john.doe@fixture.none"
 });
 
-console.log(userId); // => string
+await client.user.update({ userId }, { name: "Jane Doe", email: "jane.doe@fixture.none" });
 ```

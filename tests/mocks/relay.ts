@@ -12,7 +12,7 @@ export const relay = new Relay({
         .method("user:create")
         .params(UserSchema.omit({ id: true, createdAt: true }))
         .result(z.string()),
-      get: rpc.method("user:get").params(z.string().check(z.uuid())).result(UserSchema),
+      get: rpc.method("user:get").params(z.uuid()).result(UserSchema),
       update: rpc.method("user:update").params(
         z.tuple([
           z.string(),
@@ -22,7 +22,7 @@ export const relay = new Relay({
           }),
         ]),
       ),
-      delete: rpc.method("user:delete").params(z.string().check(z.uuid())),
+      delete: rpc.method("user:delete").params(z.uuid()),
     },
     numbers: {
       add: rpc
@@ -47,7 +47,7 @@ export const relay = new Relay({
             email: z.string().check(z.email()).optional(),
           }),
         ),
-      delete: route.delete("/users/:userId").params({ userId: z.string().check(z.uuid()) }),
+      delete: route.delete("/users/:userId").params({ userId: z.uuid() }),
     },
     numbers: {
       add: route

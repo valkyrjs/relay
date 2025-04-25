@@ -192,7 +192,39 @@ export class Route<const TState extends State = State> {
   /**
    * Server handler callback method.
    *
+   * Handler receives the params, query, body, actions in order of definition.
+   * So if your route has params, and body the route handle method will
+   * receive (params, body) as arguments.
+   *
    * @param handle - Handle function to trigger when the route is executed.
+   *
+   * @examples
+   *
+   * ```ts
+   * relay
+   *  .post("/foo/:bar")
+   *  .params({ bar: z.string() })
+   *  .body(z.tuple([z.string(), z.number()]))
+   *  .handle(async ({ bar }, [ "string", number ]) => {});
+   * ```
+   *
+   * ```ts
+   * const prefix = actions
+   *   .make("prefix")
+   *   .input(z.string())
+   *   .output({ prefixed: z.string() })
+   *   .handle(async (value) => ({
+   *     prefixed: `prefix_${value}`;
+   *   }))
+   *
+   * relay
+   *   .post("/foo")
+   *   .body(z.object({ bar: z.string() }))
+   *   .actions([prefix, (body) => body.bar])
+   *   .handle(async ({ bar }, { prefixed }) => {
+   *     console.log(prefixed); => prefixed_${bar}
+   *   });
+   * ```
    */
   handle<THandleFn extends HandleFn<this["args"], this["state"]["output"]>>(handle: THandleFn): Route<Omit<TState, "handle"> & { handle: THandleFn }> {
     return new Route({ ...this.state, handle });

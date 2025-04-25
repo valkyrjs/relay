@@ -27,7 +27,7 @@ describe("Procedure", () => {
             return api.rpc(await api.parse(request));
           }
         }
-        return new Response(null, { status: 404 });
+        return new Response("Missing required 'x-relay-type' type in header.", { status: 400 });
       },
     );
     client = relay.client({

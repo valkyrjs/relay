@@ -1,3 +1,4 @@
+import { Api } from "./api.ts";
 import { makeRelayClient, RelayClient, RelayClientConfig } from "./client.ts";
 import { Procedure } from "./procedure.ts";
 import { Route, RouteMethod } from "./route.ts";
@@ -22,6 +23,15 @@ export class Relay<
    */
   constructor(readonly relays: TRelays) {
     indexRelays(relays, this.#index);
+  }
+
+  /**
+   * Create a new relay api instance with the given relays.
+   *
+   * @param relays - List of relays to handle.
+   */
+  api<TRelays extends (Procedure | Route)[]>(relays: TRelays): Api<TRelays> {
+    return new Api<TRelays>(relays);
   }
 
   /**

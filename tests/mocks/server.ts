@@ -1,4 +1,3 @@
-import { RelayApi } from "../../libraries/api.ts";
 import { NotFoundError } from "../../mod.ts";
 import { addNumbers } from "./actions.ts";
 import { relay } from "./relay.ts";
@@ -6,7 +5,7 @@ import { User } from "./user.ts";
 
 export let users: User[] = [];
 
-export const api = new RelayApi([
+export const api = relay.api([
   relay.method("user:create").handle(async ({ name, email }) => {
     const id = crypto.randomUUID();
     users.push({ id, name, email, createdAt: new Date() });

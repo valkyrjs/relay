@@ -7,7 +7,7 @@ import { Route, RouteMethod } from "./route.ts";
 
 const SUPPORTED_MEHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
-export class RelayApi<TRelays extends (Procedure | Route)[]> {
+export class Api<TRelays extends (Procedure | Route)[]> {
   readonly #index = {
     rest: new Map<string, Route>(),
     rpc: new Map<string, Procedure>(),

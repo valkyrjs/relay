@@ -33,7 +33,7 @@ export class HttpAdapter implements RelayAdapter {
     return json;
   }
 
-  async fetch({ method, url, query, body }: RelayRESTInput) {
+  async fetch({ method, url, query, body }: RelayRESTInput): Promise<any> {
     const res = await fetch(`${url}${query}`, {
       method,
       headers: { "x-relay-type": "rest", "content-type": "application/json" },

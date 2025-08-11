@@ -1,24 +1,41 @@
 {
-  "name": "@valkyr/relay",
-  "version": "0.4.0",
-  "exports": {
-    ".": "./mod.ts",
-    "./http": "./adapters/http.ts"
-  },
-  "publish": {
-    "exclude": [
-      ".github",
-      ".vscode",
-      ".gitignore",
-      "tests"
-    ]
-  },
+  "unstable": ["fmt-component"],
+  "nodeModulesDir": "auto",
+  "workspace": [
+    "api",
+    "apps/react",
+    "spec/modules",
+    "spec/relay",
+    "spec/shared"
+  ],
   "tasks": {
-    "check": "deno check ./mod.ts",
-    "lint": "npx eslint -c eslint.config.mjs .",
-    "test": "deno test --allow-all",
-    "test:publish": "deno publish --dry-run",
-    "ncu": "npx ncu -u -p npm"
-  },
-  "nodeModulesDir": "auto"
+    "start:api": {
+      "command": "cd ./api && deno run start",
+      "description": "Start api server instance."
+    },
+    "start:react": {
+      "command": "cd ./apps/react && deno run dev",
+      "description": "Start react application instance."
+    },
+    "check": {
+      "command": "deno check ./mod.ts",
+      "description": "Runs a check on all the projects main entry files."
+    },
+    "lint": {
+      "command": "npx eslint -c eslint.config.mjs .",
+      "description": "Runs eslint across the entire project."
+    },
+    "fmt": {
+      "command": "npx prettier --write .",
+      "description": "Runs prettier formatting across the entire project."
+    },
+    "test": {
+      "command": "deno test --allow-all",
+      "description": "Runs all defined tests across the entire project."
+    },
+    "ncu": {
+      "command": "npx ncu -u -p npm",
+      "description": "Updates all the dependencies in package.json to their latest versions."
+    }
+  }
 }

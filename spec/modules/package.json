@@ -1,0 +1,11 @@
+{
+  "name": "@spec/modules",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@spec/relay": "workspace:*",
+    "@spec/shared": "workspace:*",
+    "zod": "4"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "deno --allow-all --watch-hmr=routes/ server.ts",
+    "migrate": "deno run --allow-all .tasks/migrate.ts"
+  },
+  "dependencies": {
+    "@felix/bcrypt": "npm:@jsr/felix__bcrypt@1",
+    "@spec/modules": "workspace:*",
+    "@spec/relay": "workspace:*",
+    "@spec/shared": "workspace:*",
+    "@std/cli": "npm:@jsr/std__cli@1",
+    "@std/dotenv": "npm:@jsr/std__dotenv@0.225",
+    "@std/fs": "npm:@jsr/std__fs@1",
+    "@std/path": "npm:@jsr/std__path@1",
+    "@valkyr/auth": "npm:@jsr/valkyr__auth@2",
+    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.0-beta.5",
+    "@valkyr/inverse": "npm:@jsr/valkyr__inverse@1",
+    "cookie": "1",
+    "mongodb": "6",
+    "zod": "4"
+  }
+}

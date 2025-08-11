@@ -1,0 +1,14 @@
+{
+  "name": "@spec/relay",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "dependencies": {
+    "path-to-regexp": "8",
+    "zod": "4"
+  }
+}

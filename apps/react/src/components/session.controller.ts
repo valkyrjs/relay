@@ -12,9 +12,7 @@ export class SessionController extends Controller<{
     const response = await api.auth.authenticate({
       body: {
         type: "email",
-        payload: {
-          email: "john.doe@fixture.none",
-        },
+        email: "john.doe@fixture.none",
       },
     });
     if ("error" in response) {

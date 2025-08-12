@@ -14,7 +14,7 @@
     "@std/fs": "npm:@jsr/std__fs@1",
     "@std/path": "npm:@jsr/std__path@1",
     "@valkyr/auth": "npm:@jsr/valkyr__auth@2",
-    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.0-beta.5",
+    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.0-beta.6",
     "@valkyr/inverse": "npm:@jsr/valkyr__inverse@1",
     "cookie": "1",
     "mongodb": "6",

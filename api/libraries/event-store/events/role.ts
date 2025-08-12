@@ -3,7 +3,7 @@ import z from "zod";
 
 import { auditor } from "./auditor.ts";
 
-const created = z.object({
+const CreatedSchema = z.object({
   name: z.string(),
   permissions: z.array(
     z.object({
@@ -13,7 +13,7 @@ const created = z.object({
   ),
 });
 
-const operation = z.discriminatedUnion([
+const OperationSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("grant"),
     resource: z.string(),
@@ -27,11 +27,11 @@ const operation = z.discriminatedUnion([
 ]);
 
 export default [
-  event.type("role:created").data(created).meta(auditor),
+  event.type("role:created").data(CreatedSchema).meta(auditor),
   event.type("role:name-set").data(z.string()).meta(auditor),
-  event.type("role:permissions-set").data(z.array(operation)).meta(auditor),
+  event.type("role:permissions-set").data(z.array(OperationSchema)).meta(auditor),
 ];
 
-export type RoleCreatedData = z.infer<typeof created>;
+export type RoleCreatedData = z.infer<typeof CreatedSchema>;
 
-export type RolePermissionOperation = z.infer<typeof operation>;
+export type RolePermissionOperation = z.infer<typeof OperationSchema>;

@@ -9,6 +9,7 @@ export const api = makeClient(
     }),
   },
   {
+    account: (await import("@spec/modules/account/mod.ts")).routes,
     auth: (await import("@spec/modules/auth/mod.ts")).routes,
   },
 );

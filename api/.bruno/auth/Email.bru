@@ -1,0 +1,22 @@
+meta {
+  name: Email
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/auth/email
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "base": "http://localhost:5170",
+    "email": "john.doe@fixture.none"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

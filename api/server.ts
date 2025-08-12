@@ -8,7 +8,7 @@ import { Api, resolveRoutes } from "~libraries/server/mod.ts";
 
 import { config } from "./config.ts";
 
-const MODULES_DIR = resolve(import.meta.dirname!, "modules");
+const ROUTES_DIR = resolve(import.meta.dirname!, "routes");
 
 const log = logger.prefix("Server");
 
@@ -18,7 +18,7 @@ const log = logger.prefix("Server");
  |--------------------------------------------------------------------------------
  */
 
-await import("./tasks/bootstrap.ts");
+await import("./.tasks/bootstrap.ts");
 
 /*
  |--------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ await import("./tasks/bootstrap.ts");
  |--------------------------------------------------------------------------------
  */
 
-const api = new Api(await resolveRoutes(MODULES_DIR));
+const api = new Api(await resolveRoutes(ROUTES_DIR));
 
 /*
  |--------------------------------------------------------------------------------

@@ -14,7 +14,7 @@ import { Route } from "@spec/relay";
 export async function resolveRoutes(path: string, routes: Route[] = []): Promise<Route[]> {
   for await (const entry of Deno.readDir(path)) {
     if (entry.isDirectory === true) {
-      await loadRoutes(`${path}/${entry.name}/routes`, routes, [name]);
+      await loadRoutes(`${path}/${entry.name}`, routes, [name]);
     }
   }
   return routes;

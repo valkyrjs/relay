@@ -1,3 +1,4 @@
+import { Session } from "../auth/auth.ts";
 import { asyncLocalStorage } from "./storage.ts";
 
 export const req = {
@@ -24,14 +25,14 @@ export const req = {
   /**
    * Check if the request is authenticated.
    */
-  get isAuthenticated() {
+  get isAuthenticated(): boolean {
     return this.session !== undefined;
   },
 
   /**
    * Get current session.
    */
-  get session() {
+  get session(): Session | undefined {
     return this.store.session;
   },
 

@@ -1,6 +1,7 @@
 {
   "imports": {
-    "~config": "./config.ts",
-    "~libraries/": "./libraries/"
+    "~libraries/": "./libraries/",
+    "~stores/": "./stores/",
+    "~config": "./config.ts"
   }
 }

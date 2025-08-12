@@ -1,0 +1,25 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{url}}/accounts
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": {
+      "given": "John",
+      "family": "Doe"
+    },
+    "email": "john.doe@fixture.none"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

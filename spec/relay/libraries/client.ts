@@ -1,4 +1,6 @@
-import z, { ZodType } from "zod";
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+
+import z, { ZodObject, ZodType } from "zod";
 
 import type { RelayAdapter, RelayInput, RelayResponse } from "./adapter.ts";
 import { Route, type Routes } from "./route.ts";
@@ -45,7 +47,7 @@ function getNestedRoute<TRoutes extends Routes>(config: Config, routes: TRoutes)
 }
 
 function getRouteFn(route: Route, { adapter }: Config) {
-  return async (options: any) => {
+  return async (options: any = {}) => {
     const input: RelayInput = {
       method: route.state.method,
       endpoint: route.state.path,
@@ -146,34 +148,45 @@ type RelayRequest = {
 
 type RelayRoutes<TRoutes extends Routes> = {
   [TKey in keyof TRoutes]: TRoutes[TKey] extends Route
-    ? ((
-        payload: OmitNever<{
-          params: TRoutes[TKey]["$params"];
-          query: TRoutes[TKey]["$query"];
-          body: TRoutes[TKey]["$body"];
-          headers?: Headers;
-        }>,
-      ) => Promise<RelayResponse<RelayRouteResponse<TRoutes[TKey]>, RelayRouteErrors<TRoutes[TKey]>>>) & {
-        $params: TRoutes[TKey]["$params"];
-        $query: TRoutes[TKey]["$query"];
-        $body: TRoutes[TKey]["$body"];
-        $response: TRoutes[TKey]["$response"];
-      }
+    ? HasPayload<TRoutes[TKey]> extends true
+      ? (
+          payload: Prettify<
+            (TRoutes[TKey]["state"]["params"] extends ZodObject ? { params: TRoutes[TKey]["$params"] } : {}) &
+              (TRoutes[TKey]["state"]["query"] extends ZodObject ? { query: TRoutes[TKey]["$query"] } : {}) &
+              (TRoutes[TKey]["state"]["body"] extends ZodType ? { body: TRoutes[TKey]["$body"] } : {}) & {
+                headers?: HeadersInit;
+              }
+          >,
+        ) => RouteResponse<TRoutes[TKey]>
+      : (payload?: { headers: HeadersInit }) => RouteResponse<TRoutes[TKey]>
     : TRoutes[TKey] extends Routes
-      ? RelayClient<TRoutes[TKey]>
+      ? RelayRoutes<TRoutes[TKey]>
       : never;
 };
 
-type RelayRouteResponse<TRoute extends Route> = TRoute["state"]["output"] extends ZodType
+type HasPayload<TRoute extends Route> = TRoute["state"]["params"] extends ZodObject
+  ? true
+  : TRoute["state"]["query"] extends ZodObject
+    ? true
+    : TRoute["state"]["body"] extends ZodType
+      ? true
+      : false;
+
+type RouteResponse<TRoute extends Route> = Promise<RelayResponse<RouteOutput<TRoute>, RouteErrors<TRoute>>> & {
+  $params: TRoute["$params"];
+  $query: TRoute["$query"];
+  $body: TRoute["$body"];
+  $response: TRoute["$response"];
+};
+
+type RouteOutput<TRoute extends Route> = TRoute["state"]["output"] extends ZodType
   ? z.infer<TRoute["state"]["output"]>
   : null;
 
-type RelayRouteErrors<TRoute extends Route> = InstanceType<TRoute["state"]["errors"][number]>;
-
-type OmitNever<T> = {
-  [K in keyof T as T[K] extends never ? never : K]: T[K];
-};
+type RouteErrors<TRoute extends Route> = InstanceType<TRoute["state"]["errors"][number]>;
 
 type Config = {
   adapter: RelayAdapter;
 };
+
+type Prettify<T> = { [K in keyof T]: T[K] } & {};

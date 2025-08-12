@@ -1,7 +1,7 @@
 import { Auth, ResolvedSession } from "@valkyr/auth";
 import z from "zod";
 
-import { db } from "~libraries/read-store/database.ts";
+import { db } from "~stores/read-store/database.ts";
 
 import { config } from "./config.ts";
 
@@ -11,18 +11,13 @@ export const auth = new Auth(
       algorithm: "RS256",
       privateKey: config.privateKey,
       publicKey: config.publicKey,
-      issuer: "https://balto.health",
-      audience: "https://balto.health",
+      issuer: "http://localhost",
+      audience: "http://localhost",
     },
     session: z.object({
       accountId: z.string(),
     }),
-    permissions: {
-      admin: ["create", "read", "update", "delete"],
-      organization: ["create", "read", "update", "delete"],
-      consultant: ["create", "read", "update", "delete"],
-      task: ["create", "update", "read", "delete"],
-    } as const,
+    permissions: {} as const,
     guards: [],
   },
   {

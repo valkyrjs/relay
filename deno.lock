@@ -1771,13 +1771,6 @@
           ]
         }
       },
-      "spec/modules": {
-        "packageJson": {
-          "dependencies": [
-            "npm:zod@4"
-          ]
-        }
-      },
       "spec/relay": {
         "packageJson": {
           "dependencies": [
@@ -1786,7 +1779,7 @@
           ]
         }
       },
-      "spec/shared": {
+      "spec/schemas": {
         "packageJson": {
           "dependencies": [
             "npm:zod@4"

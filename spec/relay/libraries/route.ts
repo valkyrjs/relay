@@ -10,7 +10,7 @@ export class Route<const TState extends RouteState = RouteState> {
   declare readonly $params: TState["params"] extends ZodObject ? z.input<TState["params"]> : never;
   declare readonly $query: TState["query"] extends ZodObject ? z.input<TState["query"]> : never;
   declare readonly $body: TState["body"] extends ZodType ? z.input<TState["body"]> : never;
-  declare readonly $response: TState["output"] extends ZodType ? z.output<TState["output"]> : never;
+  declare readonly $response: TState["response"] extends ZodType ? z.output<TState["response"]> : never;
 
   #matchFn?: MatchFunction<any>;
 
@@ -67,16 +67,6 @@ export class Route<const TState extends RouteState = RouteState> {
       return {} as TParams;
     }
     return result.params as TParams;
-  }
-
-  /**
-   * Set the content the route expects, 'json' or 'form-data' which the client uses
-   * to determine which adapter operation to execute on requests.
-   *
-   * @param content - Content expected during transfers.
-   */
-  content<TContent extends RouteContent>(content: TContent): Route<Omit<TState, "content"> & { content: TContent }> {
-    return new Route({ ...this.state, content });
   }
 
   /**
@@ -219,33 +209,6 @@ export class Route<const TState extends RouteState = RouteState> {
   }
 
   /**
-   * Shape of the success response this route produces. This is used by the transform
-   * tools to ensure the client receives parsed data.
-   *
-   * @param response - Response shape of the route.
-   *
-   * @examples
-   *
-   * ```ts
-   * route
-   *   .post("/foo")
-   *   .response(
-   *     z.object({
-   *       bar: z.number()
-   *     })
-   *   )
-   *   .handle(async () => {
-   *     return {
-   *       bar: 1
-   *     }
-   *   });
-   * ```
-   */
-  response<TResponse extends ZodType>(output: TResponse): Route<Omit<TState, "output"> & { output: TResponse }> {
-    return new Route({ ...this.state, output });
-  }
-
-  /**
    * Instances of the possible error responses this route produces.
    *
    * @param errors - Error shapes of the route.
@@ -268,6 +231,33 @@ export class Route<const TState extends RouteState = RouteState> {
   }
 
   /**
+   * Shape of the success response this route produces. This is used by the transform
+   * tools to ensure the client receives parsed data.
+   *
+   * @param response - Response shape of the route.
+   *
+   * @examples
+   *
+   * ```ts
+   * route
+   *   .post("/foo")
+   *   .response(
+   *     z.object({
+   *       bar: z.number()
+   *     })
+   *   )
+   *   .handle(async () => {
+   *     return {
+   *       bar: 1
+   *     }
+   *   });
+   * ```
+   */
+  response<TResponse extends ZodType>(response: TResponse): Route<Omit<TState, "response"> & { response: TResponse }> {
+    return new Route({ ...this.state, response });
+  }
+
+  /**
    * Server handler callback method.
    *
    * Handler receives the params, query, body, actions in order of definition.
@@ -286,7 +276,7 @@ export class Route<const TState extends RouteState = RouteState> {
    *  .handle(async ({ bar }, [ "string", number ]) => {});
    * ```
    */
-  handle<THandleFn extends HandleFn<ServerArgs<TState>, TState["output"]>>(
+  handle<THandleFn extends HandleFn<ServerArgs<TState>, TState["response"]>>(
     handle: THandleFn,
   ): Route<Omit<TState, "handle"> & { handle: THandleFn }> {
     return new Route({ ...this.state, handle });
@@ -433,14 +423,13 @@ export type Routes = {
 type RouteState = {
   method: RouteMethod;
   path: string;
-  content: RouteContent;
   meta?: RouteMeta;
   access?: RouteAccess;
   params?: ZodObject;
   query?: ZodObject;
   body?: ZodType;
-  output?: ZodType;
   errors: ServerErrorClass[];
+  response?: ZodType;
   handle?: HandleFn;
   hooks?: Hooks;
 };
@@ -454,8 +443,6 @@ export type RouteMeta = {
 
 export type RouteMethod = "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
 
-export type RouteContent = "json" | "form-data";
-
 export type RouteAccess = "public" | "session" | (() => boolean)[];
 
 export type AccessFn = (resource: string, action: string) => () => boolean;
@@ -466,8 +453,8 @@ export interface ServerContext {}
 type HandleFn<TArgs extends Array<any> = any[], TResponse = any> = (
   ...args: TArgs
 ) => TResponse extends ZodType
-  ? Promise<z.infer<TResponse> | Response | ServerError | unknown>
-  : Promise<Response | ServerError | unknown | void>;
+  ? Promise<z.infer<TResponse> | Response | ServerError>
+  : Promise<Response | ServerError | void>;
 
 type ServerArgs<TState extends RouteState> =
   HasInputArgs<TState> extends true

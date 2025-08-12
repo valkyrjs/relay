@@ -4,10 +4,13 @@
   "workspace": [
     "api",
     "apps/react",
-    "spec/modules",
     "spec/relay",
-    "spec/shared"
+    "spec/schemas"
   ],
+  "imports": {
+    "@spec/relay/": "./spec/relay/",
+    "@spec/schemas/": "./spec/schemas/"
+  },
   "tasks": {
     "start:api": {
       "command": "cd ./api && deno run start",

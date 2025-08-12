@@ -1,0 +1,28 @@
+meta {
+  name: Code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{url}}/auth/code/:accountId/code/:codeId/:value
+  body: none
+  auth: inherit
+}
+
+params:path {
+  accountId: 
+  codeId: 
+  value: 
+}
+
+script:post-response {
+  const cookies = res.getHeader('set-cookie');
+  if (cookies) {
+    bru.setVar("cookie", cookies.join('; '));
+  }
+}
+
+settings {
+  encodeUrl: true
+}

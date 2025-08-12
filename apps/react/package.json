@@ -10,16 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@spec/relay": "workspace:*",
+    "@spec/schemas": "workspace:*",
     "@tanstack/react-query": "5",
     "@tanstack/react-router": "1",
     "@valkyr/db": "1",
     "@valkyr/event-emitter": "npm:@jsr/valkyr__event-emitter@1",
     "fast-equals": "5",
     "react": "19",
-    "react-dom": "19"
+    "react-dom": "19",
+    "zod": "4"
   },
   "devDependencies": {
     "@eslint/js": "9",
+    "@tanstack/react-router-devtools": "1",
     "@types/react": "19",
     "@types/react-dom": "19",
     "@vitejs/plugin-react": "4",

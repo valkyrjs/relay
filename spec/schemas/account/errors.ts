@@ -1,4 +1,4 @@
-import { ConflictError } from "@spec/relay/mod.ts";
+import { ConflictError } from "@spec/relay";
 
 export class AccountEmailClaimedError extends ConflictError {
   constructor(email: string) {
